@@ -8,7 +8,12 @@ const port = 3000;
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.use('/', express.static(path.join(__dirname, '../public')));
+app.use('/', express.static(path.join(__dirname, '../public'))); // serve public
+
+app.get('/', (req, res) => {
+  console.log('connected');
+  res.sendFile(__dirname + '/index.html');
+});
 
 app.get(`/rover/:roverName`, async (req, res) => {
   const roverName = req.params.roverName;
