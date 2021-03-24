@@ -7,7 +7,6 @@ let store = Immutable.Map({
 const root = document.getElementById('root');
 
 const updateStore = (state, newState) => {
-  console.log('store', store); //TODO: REMOVE
   store = state.merge(newState);
   render(root, store);
 };
@@ -75,25 +74,25 @@ const triggerRoverApi = (rover) => {
 
 /* Clean-up API response to display specific data (reshape data)
  */
-const transformRoverData = () => {
-  const roverData = store.get('roverData');
-  const data = roverData.map((item) => {
+const transformRoverData = (rawRoverData) => {
+  //const roverData = store.get('roverData');
+  const cleanRoverData = rawRoverData.map((roverItem) => {
     return {
-      name: item.rover.name,
-      image: item.img_src,
-      launchDate: item.rover.launch_date,
-      landingDate: item.rover.landing_date,
-      status: item.rover.status,
-      earthDate: item.earth_date,
+      name: roverItem.rover.name,
+      image: roverItem.img_src,
+      launchDate: roverItem.rover.launch_date,
+      landingDate: roverItem.rover.landing_date,
+      status: roverItem.rover.status,
+      earthDate: roverItem.earth_date,
     };
   });
-  const newState = store.set('roverData', data);
+  const newState = store.set('roverData', cleanRoverData);
   updateStore(store, newState);
 };
 
 /* Toggles display of rover data
  * @param {array} roverData - rover images and data
- * @returns - a function displayData() or empty string
+ * @returns - function displayData() or empty string
  */
 const toggleRoverDisplay = (roverData) => {
   return roverData.length > 0 ? displayRoverData(roverData) : ``;
@@ -114,23 +113,19 @@ const displayRoverData = (roverData) => {
                     roverData[0].landingDate
                   )}</p>
                   <p class="status">Status: ${roverData[0].status}</p>
-                  <p class="image-date">Picture Taken On: ${convertDate(
+                  <p class="image-date">Pictures Taken On: ${convertDate(
                     roverData[0].earthDate
                   )}</p>
               </article>
           </section>
           <section class="rover-images">
-          ${roverData
-            .map(
-              (item) =>
-                `<ul>
-                  <l1>
-                    <img class="image" src="${item.image}" alt="rover image"/>
-                  </l1>
-                </ul>`
-            )
-            .join('')}
-        </section>`;
+            <div class="rover-images-list">
+            ${roverData.map(
+              (roverItem) =>
+                `<img class="image" src="${roverItem.image}" alt="rover image" />`
+            )}
+            </div>
+          </section>`;
 };
 
 // ------------------------------------------------------  API CALLS
@@ -142,9 +137,7 @@ const getRoverData = async (roverName) => {
     const roverData = await fetch(
       `http://localhost:3000/rover/${roverName}`
     ).then((res) => res.json());
-    const newState = store.set('roverData', roverData);
-    updateStore(store, newState);
-    transformRoverData();
+    transformRoverData(roverData);
   } catch (err) {
     console.log('error:', err);
   } finally {
